@@ -6,6 +6,8 @@ export enum AnimalType {
   DOG = 'dog',
   CAT = 'cat',
   RABBIT = 'rabbit',
+  BIRD = 'bird',
+  HAMSTER = 'hamster',
 }
 
 /**

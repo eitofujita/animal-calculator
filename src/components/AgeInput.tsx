@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AgeInput as AgeInputType } from '../domain/types';
 
 interface AgeInputProps {
@@ -11,6 +12,7 @@ interface AgeInputProps {
 
 /**
  * Age input component with years and optional months
+ * Beautiful modern design with gradient accents
  */
 export const AgeInput: React.FC<AgeInputProps> = ({
   age,
@@ -33,10 +35,19 @@ export const AgeInput: React.FC<AgeInputProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.label}>Age</Text>
-        <Text style={styles.toggle} onPress={onToggleMonths}>
-          {showMonths ? 'Years only' : 'Years + Months'}
-        </Text>
+        <Text style={styles.label}>📅 Age</Text>
+        <TouchableOpacity onPress={onToggleMonths} activeOpacity={0.7}>
+          <LinearGradient
+            colors={['#667eea', '#764ba2']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.toggleButton}
+          >
+            <Text style={styles.toggleText}>
+              {showMonths ? 'Years only' : 'Years + Months'}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.inputContainer}>
@@ -46,6 +57,7 @@ export const AgeInput: React.FC<AgeInputProps> = ({
             value={age.years === 0 ? '' : age.years.toString()}
             onChangeText={handleYearsChange}
             placeholder="0"
+            placeholderTextColor="#A0AEC0"
             keyboardType="number-pad"
             maxLength={3}
           />
@@ -53,12 +65,13 @@ export const AgeInput: React.FC<AgeInputProps> = ({
         </View>
 
         {showMonths && (
-          <View style={styles.inputWrapper}>
+          <View style={[styles.inputWrapper, styles.inputWrapperSpacing]}>
             <TextInput
               style={styles.input}
               value={age.months === 0 ? '' : age.months.toString()}
               onChangeText={handleMonthsChange}
               placeholder="0"
+              placeholderTextColor="#A0AEC0"
               keyboardType="number-pad"
               maxLength={2}
             />
@@ -72,47 +85,69 @@ export const AgeInput: React.FC<AgeInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2D3748',
+    letterSpacing: 0.5,
   },
-  toggle: {
-    fontSize: 14,
-    color: '#4A90E2',
-    fontWeight: '500',
+  toggleButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  toggleText: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   inputContainer: {
     flexDirection: 'row',
-    gap: 12,
   },
   inputWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#F7FAFC',
+    minHeight: 56,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  inputWrapperSpacing: {
+    marginLeft: 12,
   },
   input: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 20,
     paddingVertical: 12,
-    color: '#333',
+    color: '#2D3748',
+    fontWeight: '600',
   },
   unit: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 15,
+    color: '#718096',
     marginLeft: 8,
+    fontWeight: '500',
   },
 });

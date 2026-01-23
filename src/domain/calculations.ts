@@ -81,6 +81,42 @@ export function convertToHumanAge(
       }
       break;
 
+    case AnimalType.BIRD:
+      // Birds age faster: 1st year = 10, 2nd = +8, 3rd+ = +6/year
+      if (totalYears <= 1) {
+        humanAge = totalYears * 10;
+        formula = '1st year = 10 human years';
+      } else if (totalYears <= 2) {
+        const firstYear = 10;
+        const secondYearProgress = totalYears - 1;
+        humanAge = firstYear + secondYearProgress * 8;
+        formula = '1st year = 10, 2nd year = +8 (total 18)';
+      } else {
+        const firstTwoYears = 18;
+        const additionalYears = totalYears - 2;
+        humanAge = firstTwoYears + additionalYears * 6;
+        formula = '1st year = 10, 2nd year = +8, 3rd+ = +6/year';
+      }
+      break;
+
+    case AnimalType.HAMSTER:
+      // Hamsters age very fast: 1st year = 25, 2nd = +10, 3rd+ = +8/year
+      if (totalYears <= 1) {
+        humanAge = totalYears * 25;
+        formula = '1st year = 25 human years';
+      } else if (totalYears <= 2) {
+        const firstYear = 25;
+        const secondYearProgress = totalYears - 1;
+        humanAge = firstYear + secondYearProgress * 10;
+        formula = '1st year = 25, 2nd year = +10 (total 35)';
+      } else {
+        const firstTwoYears = 35;
+        const additionalYears = totalYears - 2;
+        humanAge = firstTwoYears + additionalYears * 8;
+        formula = '1st year = 25, 2nd year = +10, 3rd+ = +8/year';
+      }
+      break;
+
     default:
       // Fallback (should not happen with proper types)
       humanAge = totalYears * 7;
@@ -143,6 +179,10 @@ export function getAnimalDisplayName(animalType: AnimalType): string {
       return 'Cat';
     case AnimalType.RABBIT:
       return 'Rabbit';
+    case AnimalType.BIRD:
+      return 'Bird';
+    case AnimalType.HAMSTER:
+      return 'Hamster';
     default:
       return 'Unknown';
   }

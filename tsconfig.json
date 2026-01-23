@@ -1,9 +1,5 @@
 {
   "compilerOptions": {
-    /**
-     * Self-contained config (does not require `expo/tsconfig.base` to exist).
-     * This avoids the common TS error: "File 'expo/tsconfig.base' not found."
-     */
     "strict": true,
     "jsx": "react-native",
     "target": "ESNext",
@@ -14,13 +10,18 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "noEmit": true,
-
-    /**
-     * React Native / Expo-friendly defaults
-     */
-    "types": ["react", "react-native"],
+    "types": [
+      "react",
+      "react-native"
+    ],
     "isolatedModules": true
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }
