@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { AgeInput as AgeInputType } from '../domain/types';
+import { useI18n } from '../i18n/I18nContext';
+import { useThemeColors } from '../theme/useThemeColors';
+import { colors, spacing, radius, typography } from '../theme/designTokens';
 
 interface AgeInputProps {
   age: AgeInputType;
@@ -11,8 +13,8 @@ interface AgeInputProps {
 }
 
 /**
- * Age input component with years and optional months
- * Beautiful modern design with gradient accents
+ * Age input component with years and optional months.
+ * Spec: 選択中は Primary 枠。
  */
 export const AgeInput: React.FC<AgeInputProps> = ({
   age,
@@ -20,6 +22,11 @@ export const AgeInput: React.FC<AgeInputProps> = ({
   showMonths,
   onToggleMonths,
 }) => {
+  const { t } = useI18n();
+  const theme = useThemeColors();
+  const inputBackground = theme.surface === colors.surface ? colors.borderLight : theme.surface;
+  const inputBorderColor = theme.border;
+
   const handleYearsChange = (text: string) => {
     const years = text === '' ? 0 : parseInt(text, 10) || 0;
     onChange({ ...age, years });
@@ -27,7 +34,6 @@ export const AgeInput: React.FC<AgeInputProps> = ({
 
   const handleMonthsChange = (text: string) => {
     const months = text === '' ? 0 : parseInt(text, 10) || 0;
-    // Ensure months stay within 0-11 range
     const clampedMonths = Math.min(Math.max(0, months), 11);
     onChange({ ...age, months: clampedMonths });
   };
@@ -35,47 +41,48 @@ export const AgeInput: React.FC<AgeInputProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.label}>📅 Age</Text>
-        <TouchableOpacity onPress={onToggleMonths} activeOpacity={0.7}>
-          <LinearGradient
-            colors={['#667eea', '#764ba2']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.toggleButton}
-          >
-            <Text style={styles.toggleText}>
-              {showMonths ? 'Years only' : 'Years + Months'}
-            </Text>
-          </LinearGradient>
+        <Text style={[styles.label, { color: theme.textPrimary }]}>{t('age')}</Text>
+        <TouchableOpacity
+          onPress={onToggleMonths}
+          activeOpacity={0.8}
+          style={[
+            styles.toggleButton,
+            { borderColor: theme.border, backgroundColor: theme.surface },
+            showMonths && { borderColor: theme.primary, borderWidth: 2 },
+          ]}
+        >
+          <Text style={[styles.toggleText, { color: showMonths ? theme.primary : theme.textSecondary }]}>
+            {showMonths ? t('yearsAndMonths') : t('yearsOnly')}
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.inputContainer}>
-        <View style={styles.inputWrapper}>
+        <View style={[styles.inputWrapper, { backgroundColor: inputBackground, borderColor: inputBorderColor }]}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme.textPrimary }]}
             value={age.years === 0 ? '' : age.years.toString()}
             onChangeText={handleYearsChange}
             placeholder="0"
-            placeholderTextColor="#A0AEC0"
+            placeholderTextColor={theme.textTertiary}
             keyboardType="number-pad"
             maxLength={3}
           />
-          <Text style={styles.unit}>years</Text>
+          <Text style={[styles.unit, { color: theme.textSecondary }]}>{t('years')}</Text>
         </View>
 
         {showMonths && (
-          <View style={[styles.inputWrapper, styles.inputWrapperSpacing]}>
+          <View style={[styles.inputWrapper, styles.inputWrapperSpacing, { backgroundColor: inputBackground, borderColor: inputBorderColor }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme.textPrimary }]}
               value={age.months === 0 ? '' : age.months.toString()}
               onChangeText={handleMonthsChange}
               placeholder="0"
-              placeholderTextColor="#A0AEC0"
+              placeholderTextColor={theme.textTertiary}
               keyboardType="number-pad"
               maxLength={2}
             />
-            <Text style={styles.unit}>months</Text>
+            <Text style={[styles.unit, { color: theme.textSecondary }]}>{t('months')}</Text>
           </View>
         )}
       </View>
@@ -85,35 +92,25 @@ export const AgeInput: React.FC<AgeInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 28,
+    marginBottom: spacing.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   label: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2D3748',
-    letterSpacing: 0.5,
+    ...typography.h3,
   },
   toggleButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    shadowColor: '#667eea',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+    borderWidth: 1,
   },
   toggleText: {
-    fontSize: 13,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    ...typography.label,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -122,32 +119,22 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#F7FAFC',
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
     minHeight: 56,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   inputWrapperSpacing: {
-    marginLeft: 12,
+    marginLeft: spacing.sm,
   },
   input: {
     flex: 1,
-    fontSize: 20,
-    paddingVertical: 12,
-    color: '#2D3748',
-    fontWeight: '600',
+    ...typography.h3,
+    paddingVertical: spacing.sm,
   },
   unit: {
-    fontSize: 15,
-    color: '#718096',
-    marginLeft: 8,
+    ...typography.body,
+    marginLeft: spacing.xs,
     fontWeight: '500',
   },
 });

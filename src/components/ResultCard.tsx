@@ -1,202 +1,138 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { CalculationResult } from '../domain/types';
 import { getAnimalDisplayName } from '../domain/calculations';
+import { useI18n } from '../i18n/I18nContext';
+import { useThemeColors } from '../theme/useThemeColors';
+import { colors, typography, spacing, radius, shadows } from '../theme/designTokens';
+import { PrimaryButton } from './ui/PrimaryButton';
 
 interface ResultCardProps {
   result: CalculationResult | null;
   error?: string;
+  onAddReminder?: () => void;
 }
 
-/**
- * Result card component displaying calculation results or errors
- * Beautiful gradient design with modern styling
- */
-export const ResultCard: React.FC<ResultCardProps> = ({ result, error }) => {
+export const ResultCard: React.FC<ResultCardProps> = ({ result, error, onAddReminder }) => {
+  const { t } = useI18n();
+  const theme = useThemeColors();
+
   if (error && !result) {
     return (
-      <View style={styles.errorCard}>
-        <View style={styles.errorHeader}>
-          <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorTitle}>Error</Text>
-        </View>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={[styles.errorCard, { borderLeftColor: theme.error, backgroundColor: 'rgba(197, 48, 48, 0.08)' }]}>
+        <Text style={[styles.errorTitle, { color: theme.error }]}>{t('error')}</Text>
+        <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
       </View>
     );
   }
 
-  if (!result) {
-    return null;
-  }
+  if (!result) return null;
 
-  const { humanAge, formula, animalType, inputAge } = result;
+  const { humanAge, animalType, inputAge } = result;
+  const yearsText = t('years');
+  const monthsText = t('months');
   const ageDisplay =
     inputAge.months > 0
-      ? `${inputAge.years} year${inputAge.years !== 1 ? 's' : ''}, ${inputAge.months} month${inputAge.months !== 1 ? 's' : ''}`
-      : `${inputAge.years} year${inputAge.years !== 1 ? 's' : ''}`;
+      ? `${inputAge.years} ${yearsText}, ${inputAge.months} ${monthsText}`
+      : `${inputAge.years} ${yearsText}`;
 
   return (
-    <View style={styles.cardContainer}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
-        <View style={styles.content}>
-          <Text style={styles.title}>🎉 Human Age Equivalent</Text>
-          
-          <View style={styles.humanAgeContainer}>
-            <Text style={styles.humanAge}>{humanAge}</Text>
-            <Text style={styles.humanAgeLabel}>years</Text>
-          </View>
-          
-          <View style={styles.divider} />
-          
-          <View style={styles.detailsContainer}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>🐾 Animal:</Text>
-              <Text style={styles.detailValue}>{getAnimalDisplayName(animalType)}</Text>
-            </View>
-            
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>📅 Age:</Text>
-              <Text style={styles.detailValue}>{ageDisplay}</Text>
-            </View>
-            
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>📊 Formula:</Text>
-              <Text style={styles.detailValue}>{formula}</Text>
-            </View>
-          </View>
-
-          {error && (
-            <View style={styles.warningContainer}>
-              <Text style={styles.warningText}>⚠️ {error}</Text>
-            </View>
-          )}
+    <View style={[styles.cardContainer, { backgroundColor: theme.surface, borderColor: theme.border }, shadows.card]}>
+      <Text style={[styles.title, { color: theme.textPrimary }]}>{t('humanAgeEquivalent')}</Text>
+      <View style={styles.humanAgeContainer}>
+        <Text style={[styles.humanAge, { color: theme.primary }]}>{humanAge}</Text>
+        <Text style={[styles.humanAgeLabel, { color: theme.textSecondary }]}>{t('years')}</Text>
+      </View>
+      <Text style={[styles.caption, { color: theme.textTertiary }]}>
+        {getAnimalDisplayName(animalType, t)} · {ageDisplay}
+      </Text>
+      <View style={[styles.divider, { backgroundColor: theme.divider }]} />
+      <View style={styles.detailsContainer}>
+        <View style={styles.detailRow}>
+          <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{t('animal')}:</Text>
+          <Text style={[styles.detailValue, { color: theme.textPrimary }]}>{getAnimalDisplayName(animalType, t)}</Text>
         </View>
-      </LinearGradient>
+        <View style={styles.detailRow}>
+          <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>{t('age')}:</Text>
+          <Text style={[styles.detailValue, { color: theme.textPrimary }]}>{ageDisplay}</Text>
+        </View>
+      </View>
+      {error && (
+        <View style={[styles.warningContainer, { borderLeftColor: colors.warning }]}>
+          <Text style={[styles.warningText, { color: colors.warning }]}>{error}</Text>
+        </View>
+      )}
+      {onAddReminder && (
+        <View style={styles.ctaWrap}>
+          <PrimaryButton title={t('addReminderFromAge')} onPress={onAddReminder} />
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   cardContainer: {
-    marginTop: 24,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#667eea',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 10,
-  },
-  card: {
-    borderRadius: 20,
-    padding: 24,
-  },
-  content: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 20,
+    marginTop: spacing.lg,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    borderWidth: 1,
+    width: '100%',
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#2D3748',
-    marginBottom: 16,
+    ...typography.h2,
     textAlign: 'center',
-    letterSpacing: 0.5,
+    marginBottom: spacing.md,
+    flexShrink: 1,
   },
   humanAgeContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xs,
   },
   humanAge: {
-    fontSize: 56,
-    fontWeight: '800',
-    color: '#667eea',
-    marginRight: 8,
+    ...typography.display,
+    marginRight: spacing.xs,
   },
   humanAgeLabel: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#718096',
+    ...typography.displaySmall,
+    opacity: 0.9,
+  },
+  caption: {
+    ...typography.caption,
+    textAlign: 'center',
+    marginBottom: spacing.md,
   },
   divider: {
-    height: 2,
-    backgroundColor: '#E2E8F0',
-    marginVertical: 20,
+    height: 1,
+    marginVertical: spacing.md,
     borderRadius: 1,
   },
-  detailsContainer: {
-  },
+  detailsContainer: { marginBottom: spacing.sm },
   detailRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: spacing.xs,
     alignItems: 'center',
   },
-  detailLabel: {
-    fontSize: 15,
-    color: '#4A5568',
-    width: 100,
-    fontWeight: '600',
-  },
-  detailValue: {
-    fontSize: 15,
-    color: '#2D3748',
-    flex: 1,
-    fontWeight: '500',
-  },
+  detailLabel: { ...typography.bodySmall, width: 80 },
+  detailValue: { ...typography.body, flex: 1, flexShrink: 1 },
   warningContainer: {
-    marginTop: 16,
-    padding: 14,
-    backgroundColor: '#FFF3CD',
-    borderRadius: 12,
+    marginTop: spacing.md,
+    padding: spacing.sm,
+    borderRadius: radius.sm,
     borderLeftWidth: 4,
-    borderLeftColor: '#FFC107',
+    backgroundColor: 'rgba(230, 126, 34, 0.1)',
   },
-  warningText: {
-    fontSize: 14,
-    color: '#856404',
-    fontWeight: '500',
-    lineHeight: 20,
-  },
+  warningText: { ...typography.bodySmall },
+  ctaWrap: { marginTop: spacing.lg },
   errorCard: {
-    backgroundColor: '#FED7D7',
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 24,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginTop: spacing.lg,
     borderLeftWidth: 4,
-    borderLeftColor: '#E53E3E',
-    shadowColor: '#E53E3E',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    backgroundColor: 'rgba(197, 48, 48, 0.08)',
   },
-  errorHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  errorIcon: {
-    fontSize: 24,
-    marginRight: 8,
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#C53030',
-  },
-  errorText: {
-    fontSize: 15,
-    color: '#742A2A',
-    fontWeight: '500',
-    lineHeight: 22,
-  },
+  errorTitle: { ...typography.h3, marginBottom: spacing.xs },
+  errorText: { ...typography.bodySmall },
 });

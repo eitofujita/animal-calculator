@@ -28,3 +28,41 @@ export interface CalculationResult {
   animalType: AnimalType;
   inputAge: AgeInput;
 }
+
+export interface Pet {
+  id: string;
+  name: string;
+  species: AnimalType;
+  birthday?: string;
+  ageYears?: number;
+  ageMonths?: number;
+  weightKg?: number;
+  createdAt: string;
+}
+
+/**
+ * Health log categories (weight, diet, excretion, exercise, sleep, symptoms)
+ */
+export enum HealthLogCategory {
+  WEIGHT = 'weight',
+  DIET = 'diet',
+  EXCRETION = 'excretion',
+  EXERCISE = 'exercise',
+  SLEEP = 'sleep',
+  SYMPTOMS = 'symptoms',
+}
+
+/**
+ * Single health log entry for a date
+ * value: string (e.g. "12.5" for weight kg, "normal" for excretion, "30" for exercise minutes)
+ * note: optional free text
+ */
+export interface HealthLogEntry {
+  id: string;
+  date: string; // YYYY-MM-DD
+  category: HealthLogCategory;
+  petId?: string;
+  value: string;
+  note?: string;
+  createdAt: string; // ISO
+}

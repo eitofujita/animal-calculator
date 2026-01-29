@@ -9,6 +9,10 @@ import {
   Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useI18n } from '../i18n/I18nContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useThemeColors } from '../theme/useThemeColors';
+import { colors, spacing, radius, typography, iconSize } from '../theme/designTokens';
 
 interface MenuBarProps {
   onAbout?: () => void;
@@ -29,38 +33,63 @@ export const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(({
   onSettings,
   onHelp,
 }, ref) => {
+  const { t } = useI18n();
+  const { isDark } = useTheme();
+  const theme = useThemeColors();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const slideAnim = React.useRef(new Animated.Value(300)).current;
+  const slideAnim = React.useRef(new Animated.Value(-300)).current;
+  const overlayOpacity = React.useRef(new Animated.Value(0)).current;
+
+  const menuBackground = theme.surface;
+  const menuTextColor = theme.textPrimary;
+  const menuDividerColor = theme.divider;
+  const menuFooterTextColor = theme.textTertiary;
 
   const openMenu = () => {
     console.log('Menu button pressed!');
-    // メニューを表示し、アニメーション値をリセット
+    // Show menu and reset animation value
     setIsMenuVisible(true);
-    // 次のフレームでアニメーションを開始（Modalの表示を待つ）
+    // Start animation on next frame (wait for Modal to render)
     requestAnimationFrame(() => {
-      slideAnim.setValue(300); // 画面外から開始
-      // スライドインアニメーション
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 50,
-        friction: 7,
-      }).start();
+      slideAnim.setValue(-300); // Start from off-screen (left side)
+      overlayOpacity.setValue(0); // Start with transparent overlay
+      // Animate both slide-in and overlay fade-in simultaneously
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 50,
+          friction: 7,
+        }),
+        Animated.timing(overlayOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
     });
   };
 
   const closeMenu = () => {
-    // スライドアウトアニメーション
-    Animated.spring(slideAnim, {
-      toValue: 300,
-      useNativeDriver: true,
-      tension: 50,
-      friction: 7,
-    }).start((finished) => {
+    // Animate both slide-out and overlay fade-out simultaneously
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: -300,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 7,
+      }),
+      Animated.timing(overlayOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start((finished) => {
       if (finished) {
         setIsMenuVisible(false);
-        // アニメーション値をリセットして次回の開閉に備える
-        slideAnim.setValue(300);
+        // Reset animation values for next open/close
+        slideAnim.setValue(-300);
+        overlayOpacity.setValue(0);
       }
     });
   };
@@ -72,7 +101,7 @@ export const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(({
     }
   };
 
-  // ref経由でopenMenu関数を外部に公開
+  // Expose openMenu function via ref
   useImperativeHandle(ref, () => ({
     openMenu,
   }));
@@ -85,7 +114,7 @@ export const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(({
         animationType="none"
         onRequestClose={closeMenu}
       >
-        <View style={styles.modalOverlay}>
+        <Animated.View style={[styles.modalOverlay, { opacity: overlayOpacity }]}>
           <TouchableOpacity
             style={styles.overlayTouchable}
             activeOpacity={1}
@@ -96,24 +125,25 @@ export const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(({
               styles.menuContainer,
               {
                 transform: [{ translateX: slideAnim }],
+                backgroundColor: menuBackground,
               },
             ]}
             onStartShouldSetResponder={() => true}
           >
             <View style={styles.menuInnerContainer}>
               <LinearGradient
-                colors={['#667eea', '#764ba2']}
+                colors={[colors.primary, colors.primaryDark]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.menuHeader}
               >
-                <Text style={styles.menuTitle}>Menu</Text>
+                <Text style={styles.menuTitle}>{t('menu')}</Text>
                 <TouchableOpacity
                   style={styles.closeButton}
                   onPress={closeMenu}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.closeButtonText}>✕</Text>
+                  <Text style={styles.closeButtonText}>×</Text>
                 </TouchableOpacity>
               </LinearGradient>
 
@@ -123,40 +153,39 @@ export const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(({
                   onPress={() => handleMenuAction(onAbout)}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.menuItemIcon}>ℹ️</Text>
-                  <Text style={styles.menuItemText}>About</Text>
+                  <Text style={[styles.menuItemText, { color: menuTextColor }]}>{t('about')}</Text>
                 </TouchableOpacity>
+                <View style={[styles.menuItemSeparator, { backgroundColor: menuDividerColor }]} />
 
                 <TouchableOpacity
                   style={styles.menuItem}
                   onPress={() => handleMenuAction(onSettings)}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.menuItemIcon}>⚙️</Text>
-                  <Text style={styles.menuItemText}>Settings</Text>
+                  <Text style={[styles.menuItemText, { color: menuTextColor }]}>{t('settings')}</Text>
                 </TouchableOpacity>
+                <View style={[styles.menuItemSeparator, { backgroundColor: menuDividerColor }]} />
 
                 <TouchableOpacity
                   style={styles.menuItem}
                   onPress={() => handleMenuAction(onHelp)}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.menuItemIcon}>❓</Text>
-                  <Text style={styles.menuItemText}>Help</Text>
+                  <Text style={[styles.menuItemText, { color: menuTextColor }]}>{t('help')}</Text>
                 </TouchableOpacity>
 
-                <View style={styles.menuDivider} />
+                <View style={[styles.menuDivider, { backgroundColor: menuDividerColor }]} />
 
                 <View style={styles.menuFooter}>
-                  <Text style={styles.menuFooterText}>
-                    Pet Age Calculator
+                  <Text style={[styles.menuFooterText, { color: menuFooterTextColor }]}>
+                    {t('appName')}
                   </Text>
-                  <Text style={styles.menuFooterVersion}>Version 1.0.0</Text>
+                  <Text style={[styles.menuFooterVersion, { color: menuFooterTextColor }]}>{t('appVersion')}</Text>
                 </View>
               </View>
             </View>
           </Animated.View>
-        </View>
+        </Animated.View>
       </Modal>
     </>
   );
@@ -169,18 +198,18 @@ MenuBar.displayName = 'MenuBar';
  * Renders the hamburger menu button
  */
 export const MenuButton: React.FC<{ onPress: () => void }> = ({ onPress }) => {
+  const theme = useThemeColors();
   return (
     <TouchableOpacity
-      style={styles.menuButtonInline}
+      style={[
+        styles.menuButtonInline,
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.primary,
+        },
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
-      hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}
-      onPressIn={() => {
-        console.log('Menu button pressed IN');
-      }}
-      onPressOut={() => {
-        console.log('Menu button pressed OUT');
-      }}
     >
       <View style={styles.hamburger}>
         <View style={styles.hamburgerLine} />
@@ -205,46 +234,25 @@ const styles = StyleSheet.create({
     elevation: 25,
   },
   menuButtonInline: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#FFFFFF',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 20,
+    marginRight: spacing.md,
     borderWidth: 2,
-    borderColor: '#667eea',
-    alignSelf: 'flex-start',
-  },
-  menuButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 20,
-    borderWidth: 2,
-    borderColor: '#667eea',
+    zIndex: 1000,
+    overflow: 'hidden',
   },
   hamburger: {
-    width: 24,
-    height: 18,
+    width: iconSize.sm,
+    height: 15,
     justifyContent: 'space-between',
   },
   hamburgerLine: {
     width: '100%',
     height: 3,
-    backgroundColor: '#667eea',
+    backgroundColor: colors.primary,
     borderRadius: 2,
   },
   modalOverlay: {
@@ -257,13 +265,12 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     position: 'absolute',
-    right: 0,
+    left: 0,
     top: 0,
     bottom: 0,
     width: 280,
-    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: { width: -2, height: 0 },
+    shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 10,
@@ -280,10 +287,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   menuTitle: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   closeButton: {
     width: 32,
@@ -294,7 +301,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeButtonText: {
-    fontSize: 20,
+    fontSize: 18,
     color: '#FFFFFF',
     fontWeight: '600',
   },
@@ -305,25 +312,22 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  menuItemIcon: {
-    fontSize: 24,
-    marginRight: 16,
-    width: 32,
+    borderBottomWidth: 0,
   },
   menuItemText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2D3748',
+    letterSpacing: 0.2,
+  },
+  menuItemSeparator: {
+    height: 1,
+    marginHorizontal: 20,
   },
   menuDivider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
-    marginVertical: 20,
+    marginVertical: 16,
     marginHorizontal: 20,
   },
   menuFooter: {
@@ -334,11 +338,9 @@ const styles = StyleSheet.create({
   menuFooterText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#718096',
     marginBottom: 4,
   },
   menuFooterVersion: {
     fontSize: 12,
-    color: '#A0AEC0',
   },
 });
